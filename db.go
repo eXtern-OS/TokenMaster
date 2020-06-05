@@ -2,7 +2,6 @@ package TokenMaster
 
 import (
 	"context"
-	"github.com/eXtern-OS/AMS"
 	beatrix "github.com/eXtern-OS/Beatrix"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -100,35 +99,4 @@ func PutToken(token Token) int {
 		return http.StatusInternalServerError
 	}
 	return http.StatusOK
-}
-
-func GetUserByUID(uid string) (bool, AMS.Account) {
-	client, err := mongo.NewClient(options.Client().ApplyURI(URI))
-	if err != nil {
-		log.Println(err)
-		go beatrix.SendError("Error creating new mongo client", "TOKEN.GETUSERBYID")
-		return false, AMS.Account{}
-	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Println(err)
-		go beatrix.SendError("Error connecting with new mongo client", "TOKEN.GETUSERBYID")
-		return false, AMS.Account{}
-	}
-
-	collection := client.Database("Users").Collection("token")
-	var res AMS.Account
-	filter := bson.M{
-		"uid": uid,
-	}
-
-	err = collection.FindOne(context.Background(), filter).Decode(&res)
-
-	if err != nil {
-		log.Println(err)
-		go beatrix.SendError("Error inserting token", "TOKEN.GETUSERBYID")
-		return false, AMS.Account{}
-	}
-	return true, res
 }
